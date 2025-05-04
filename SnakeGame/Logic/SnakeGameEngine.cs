@@ -6,36 +6,6 @@ using System.Threading.Tasks;
 
 namespace SnakeGame.Logic
 {
-    class Coordinate
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public Coordinate(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        public static Coordinate operator +(Coordinate a, Coordinate b)
-        {
-            return new Coordinate(a.X + b.X, a.Y + b.Y);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is Coordinate other)
-            {
-                return X == other.X && Y == other.Y;
-            }
-            return false;
-        }
-
-        public static readonly Coordinate Up = new(0, -1);
-        public static readonly Coordinate Down = new(0, 1);
-        public static readonly Coordinate Left = new(-1, 0);
-        public static readonly Coordinate Right = new(1, 0);
-    }
-
     class SnakeGameEngine
     {
         private Timer? _gameTimer;
@@ -43,28 +13,23 @@ namespace SnakeGame.Logic
         private List<Coordinate> _snake;
         private Coordinate Direction = Coordinate.Up;
         private int _interval = 350;
-        private Action<int, int> _UpdateTile;
         private Action _OnGameOver;
+        EventHandler<CoordinateEventArgs>? _tileUpdateEvent;
 
         public bool IsGameOver = false;
-        public bool Paused = false;
 
         private bool isOutOfBounds(Coordinate coord, int size)
         {
             return coord.X < 0 || coord.X >= size || coord.Y < 0 || coord.Y >= size;
         }
 
-        public SnakeGameEngine(GameViewModel gameViewModel, Action<int, int> UpdateTile, Action OnGameOver)
+        public SnakeGameEngine(GameViewModel gameViewModel, EventHandler<CoordinateEventArgs>? tileUpdateEvent, Action OnGameOver)
         {
             _gameViewModel = gameViewModel;
-            _UpdateTile = UpdateTile;
+            _tileUpdateEvent = tileUpdateEvent;
             _OnGameOver = OnGameOver;
 
-            var map = _gameViewModel.CurrentMap;
-
-            if (map == null)
-                throw new InvalidOperationException("Map must be set before starting the game.");
-
+            var map = _gameViewModel.CurrentMap ?? throw new InvalidOperationException("Map must be set before starting the game.");
             int size = map.GetLength(0);
             var center = new Coordinate(size / 2, size / 2);
 
@@ -98,12 +63,10 @@ namespace SnakeGame.Logic
             {
                 map[coord.X, coord.Y] = TileType.SnakeHead;
             });
-        }
 
-        public void StartGame()
-        {
+
+            _gameTimer = new Timer(OnGameTick, null, Timeout.Infinite, Timeout.Infinite);
             PlaceFood();
-            _gameTimer = new Timer(OnGameTick, null, 0, _interval);
         }
 
         private void UpdateSpeed()
@@ -119,7 +82,7 @@ namespace SnakeGame.Logic
                 return;
 
             map[x, y] = tileType;
-            _UpdateTile(x, y);
+            _tileUpdateEvent?.Invoke(this, new CoordinateEventArgs(new Coordinate(x, y)));
         }
 
         private void OnGameTick(object? state)
@@ -180,7 +143,7 @@ namespace SnakeGame.Logic
                 return;
 
             int size = map.GetLength(0);
-            Random random = new Random();
+            Random random = new();
 
             var coord = new Coordinate(random.Next(size), random.Next(size));
 
@@ -195,7 +158,7 @@ namespace SnakeGame.Logic
             }
 
             map[coord.X, coord.Y] = TileType.Food;
-            _UpdateTile(coord.X, coord.Y);
+            _tileUpdateEvent?.Invoke(this, new CoordinateEventArgs(coord));
         }
 
         public void ChangeDirection(Coordinate newDirection)
@@ -221,17 +184,15 @@ namespace SnakeGame.Logic
             _OnGameOver?.Invoke();
         }
 
-        public void TogglePause()
+        public void SetPaused(bool paused)
         {
-            if (Paused)
+            if (paused)
             {
-                _gameTimer?.Change(0, _interval);
-                Paused = false;
+                _gameTimer?.Change(Timeout.Infinite, Timeout.Infinite);
             }
             else
             {
-                _gameTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-                Paused = true;
+                _gameTimer?.Change(0, _interval);
             }
         }
     }

@@ -1,20 +1,8 @@
 ﻿using SnakeGame.Logic;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SnakeGame.Screens
 {
@@ -23,12 +11,12 @@ namespace SnakeGame.Screens
     /// </summary>
     public partial class Game : UserControl
     {
-        private MainWindow _mainWindow;
+        private readonly MainWindow _mainWindow;
         private UIElement[,]? _tileElements;
-        private SnakeGameEngine? _engine;
-        private int _countdownSeconds = 3;
-        private Timer? _countdownTimer;
-        private bool _firstCountdown = true;
+        private readonly SnakeGameEngine? _engine;
+        CancellationTokenSource _cts = new();
+        private bool _isPaused = false;
+        private event EventHandler<CoordinateEventArgs>? TileUpdateEvent;
 
         public Game(MainWindow mainWindow)
         {
@@ -37,7 +25,9 @@ namespace SnakeGame.Screens
 
             DataContext = _mainWindow.GameViewModel;
 
-            _engine = new SnakeGameEngine(_mainWindow.GameViewModel, UpdateTile, OnGameOver);
+            TileUpdateEvent += TileUpdateEventHandler;
+
+            _engine = new SnakeGameEngine(_mainWindow.GameViewModel, TileUpdateEvent, OnGameOver);
 
             Loaded += (s, e) =>
             {
@@ -52,50 +42,35 @@ namespace SnakeGame.Screens
             MapTypeTextBlock.Text = _mainWindow.GameViewModel.MapType.ToString();
 
             InitializeMapGrid();
-            ShowCountDown();
+
+            _ = StartCountDown(_cts.Token);
         }
 
-        private void CountdownTick(object? state)
+        private async Task StartCountDown(CancellationToken cancellationToken)
         {
-            _countdownSeconds--;
-            if (_countdownSeconds <= 0)
+            try
             {
-                _countdownTimer?.Dispose();
+                for (int i = 3; i > 0; --i)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        OverlayText.Text = i.ToString();
+                        OverlayGrid.Visibility = Visibility.Visible;
+                    });
+
+                    await Task.Delay(1000, cancellationToken);
+                }
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     OverlayGrid.Visibility = Visibility.Hidden;
-                });
-                if (_firstCountdown)
-                {
-                    _engine?.StartGame();
-                    _firstCountdown = false;
-                }
-                else
-                {
-                    _engine?.TogglePause();
-                }
-            }
-            else
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    OverlayText.Text = _countdownSeconds.ToString();
+                    _engine?.SetPaused(false);
                 });
             }
+            catch (TaskCanceledException) { }
         }
 
-        private void ShowCountDown()
-        {
-            _countdownSeconds = 3;
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                OverlayText.Text = _countdownSeconds.ToString();
-                OverlayGrid.Visibility = Visibility.Visible;
-            });
-            _countdownTimer = new Timer(CountdownTick, null, 1000, 1000);
-        }
-
-        private Brush GetBrushForTile(TileType tile)
+        private static SolidColorBrush GetBrushForTile(TileType tile)
         {
             return tile switch
             {
@@ -138,19 +113,23 @@ namespace SnakeGame.Screens
             }
         }
 
-        private void UpdateTile(int x, int y)
+        private void TileUpdateEventHandler(object? sender, EventArgs e)
         {
-            var map = _mainWindow.GameViewModel.CurrentMap;
-            if (map == null || _tileElements == null) return;
-
-            int size = map.GetLength(0);
-
-            if (_tileElements[x, y] is Border border)
+            if (e is CoordinateEventArgs cea)
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                var coord = cea.Coordinate;
+                var map = _mainWindow.GameViewModel.CurrentMap;
+                if (map == null || _tileElements == null) return;
+
+                int size = map.GetLength(0);
+
+                if (_tileElements[coord.X, coord.Y] is Border border)
                 {
-                    border.Background = GetBrushForTile(map[x, y]);
-                });
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        border.Background = GetBrushForTile(map[coord.X, coord.Y]);
+                    });
+                }
             }
         }
         protected override void OnPreviewKeyDown(KeyEventArgs e)
@@ -182,15 +161,19 @@ namespace SnakeGame.Screens
                     _engine?.ChangeDirection(Coordinate.Right);
                     break;
                 case Key.P:
-                    if (_engine?.Paused == true)
+                    if (_isPaused)
                     {
-                        ShowCountDown();
+                        _isPaused = false;
+                        _cts = new CancellationTokenSource();
+                        _ = StartCountDown(_cts.Token);
                     }
                     else
                     {
                         OverlayText.Text = "Paused";
                         OverlayGrid.Visibility = Visibility.Visible;
-                        _engine?.TogglePause();
+                        _engine?.SetPaused(true);
+                        _isPaused = true;
+                        _cts.Cancel();
                     }
                     break;
             }
