@@ -7,6 +7,65 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <TextBlock Text="Score: " FontSize="18" />
+                <TextBlock x:Name="ScoreTextBlock" Text="" FontSize="18" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <TextBlock Text="Game Type: " FontSize="18" />
+                <TextBlock x:Name="GameTypeTextBlock" Text="" FontSize="18" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <TextBlock Text="Map Size: " FontSize="18" />
+                <TextBlock x:Name="MapSizeTextBlock" Text="" FontSize="18" />
+            </StackPanel>
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <TextBlock Text="Map Type: " FontSize="18" />
+                <TextBlock x:Name="MapTypeTextBlock" Text="" FontSize="18" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
+                <TextBlock x:Name="ScoreTitle" Text="New Score!" FontSize="36" Margin="0,0,0,10" HorizontalAlignment="Center" />
+                <TextBlock Text="Enter your name:" FontSize="18" />
+                <TextBox Name="NameTextBox" Margin="0,0,0,10" />
+                <Button Content="Submit" Click="Submit_Click" Margin="0,0,0,10" Width="150" />
+                <Button Content="Back to Main Menu" Click="Back_Click" Margin="0,0,0,10" Width="150" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Top Scores" FontSize="36" HorizontalAlignment="Center" />
+                <ListView Grid.Column="1" Margin="20" Name="ListViewHighScores" MaxWidth="340"
+                    d:ItemsSource="{d:SampleData ItemCount=10}" ItemsSource="{Binding HighScores}" Height="240">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="180" Header="Player Name" DisplayMemberBinding="{Binding PlayerName}"/>
+                            <GridViewColumn Width="75" Header="Score" DisplayMemberBinding="{Binding Score}"/>
+                            <GridViewColumn Width="75" Header="Date" DisplayMemberBinding="{Binding AchievedAt, StringFormat=\{0:dd.MM.yyyy\}}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </StackPanel>
+
+        </Grid>
     </Grid>
 </UserControl>

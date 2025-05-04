@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SnakeGame.Logic
+﻿namespace SnakeGame.Logic
 {
     public class Coordinate
     {
@@ -28,6 +22,11 @@ namespace SnakeGame.Logic
                 return X == other.X && Y == other.Y;
             }
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(X, Y);
         }
 
         public static readonly Coordinate Up = new(0, -1);

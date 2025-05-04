@@ -1,24 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SnakeGame.Logic
+﻿namespace SnakeGame.Logic
 {
     class SnakeGameEngine
     {
-        private Timer? _gameTimer;
-        private GameViewModel _gameViewModel;
-        private List<Coordinate> _snake;
+        private readonly Timer? _gameTimer;
+        private readonly GameViewModel _gameViewModel;
+        private readonly List<Coordinate> _snake;
         private Coordinate Direction = Coordinate.Up;
         private int _interval = 350;
-        private Action _OnGameOver;
-        EventHandler<CoordinateEventArgs>? _tileUpdateEvent;
+        private readonly Action _OnGameOver;
+        private readonly EventHandler<CoordinateEventArgs>? _tileUpdateEvent;
 
         public bool IsGameOver = false;
 
-        private bool isOutOfBounds(Coordinate coord, int size)
+        private static bool IsOutOfBounds(Coordinate coord, int size)
         {
             return coord.X < 0 || coord.X >= size || coord.Y < 0 || coord.Y >= size;
         }
@@ -35,11 +29,11 @@ namespace SnakeGame.Logic
 
             _snake = [center];
 
-            var isSnakeValid = () => _snake.All(coord =>
+            bool isSnakeValid() => _snake.All(coord =>
             {
                 bool result = map[coord.X, coord.Y].Equals(TileType.Empty);
                 var coordUp = coord + Coordinate.Up;
-                if (isOutOfBounds(coordUp, size))
+                if (IsOutOfBounds(coordUp, size))
                     return false;
 
                 return result && map[coordUp.X, coordUp.Y].Equals(TileType.Empty);
@@ -50,7 +44,7 @@ namespace SnakeGame.Logic
                 for (int i = 0; i < _snake.Count; i++)
                 {
                     var newCoord = _snake[i] + Coordinate.Right;
-                    if (isOutOfBounds(newCoord, size))
+                    if (IsOutOfBounds(newCoord, size))
                     {
                         newCoord.X = newCoord.X % size;
                         newCoord.Y = newCoord.Y % size;
@@ -93,7 +87,7 @@ namespace SnakeGame.Logic
 
             var newHead = _snake[0] + Direction;
 
-            if (isOutOfBounds(newHead, map.GetLength(0)) || map[newHead.X, newHead.Y] == TileType.Wall || map[newHead.X, newHead.Y] == TileType.SnakeBody)
+            if (IsOutOfBounds(newHead, map.GetLength(0)) || map[newHead.X, newHead.Y] == TileType.Wall || map[newHead.X, newHead.Y] == TileType.SnakeBody)
             {
                 StopGame();
                 return;
@@ -150,7 +144,7 @@ namespace SnakeGame.Logic
             while (map[coord.X, coord.Y] != TileType.Empty)
             {
                 coord += Coordinate.Right;
-                if (isOutOfBounds(coord, size))
+                if (IsOutOfBounds(coord, size))
                 {
                     coord.X = coord.X % size;
                     coord.Y = coord.Y % size;

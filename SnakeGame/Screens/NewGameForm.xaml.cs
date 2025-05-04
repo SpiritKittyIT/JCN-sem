@@ -1,23 +1,11 @@
 ﻿using Microsoft.Win32;
 using SnakeGame.Data;
 using SnakeGame.Logic;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SnakeGame.Screens
 {
@@ -26,7 +14,7 @@ namespace SnakeGame.Screens
     /// </summary>
     public partial class NewGameForm : UserControl
     {
-        private MainWindow _mainWindow;
+        private readonly MainWindow _mainWindow;
 
         public NewGameForm(MainWindow mainWindow)
         {

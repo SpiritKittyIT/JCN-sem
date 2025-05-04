@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 
 namespace SnakeGame;
 
@@ -14,11 +11,10 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        var context = new SnakeGame.Data.GameContext();
-        context.Database.Migrate();
+        using var context = new Data.GameContext();
+        context.Database.EnsureCreated();
 
         var mainWindow = new MainWindow();
         mainWindow.Show();
     }
 }
-

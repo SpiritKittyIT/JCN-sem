@@ -1,14 +1,5 @@
 ﻿using SnakeGame.Logic;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SnakeGame;
 
@@ -17,7 +8,7 @@ namespace SnakeGame;
 /// </summary>
 public partial class MainWindow : Window
 {
-    public GameViewModel GameViewModel = new GameViewModel();
+    public GameViewModel GameViewModel = new();
 
     public MainWindow()
     {
@@ -50,7 +41,7 @@ public partial class MainWindow : Window
         MainContent.Content = new Screens.NewScoreForm(this);
     }
 
-    public void Exit()
+    public static void Exit()
     {
         Application.Current.Shutdown();
     }

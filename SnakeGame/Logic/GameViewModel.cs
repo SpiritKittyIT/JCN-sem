@@ -25,10 +25,10 @@ namespace SnakeGame.Logic
 
         public GameViewModel()
         {
-            MapChanged();
+            Reset();
         }
 
-        private Visibility _showLoadCustomMapButton = Visibility.Hidden;
+        private Visibility _showLoadCustomMapButton;
         public Visibility ShowLoadCustomMapButton
         {
             get => _showLoadCustomMapButton;
@@ -39,7 +39,7 @@ namespace SnakeGame.Logic
             }
         }
 
-        private GameType _gameType = GameType.Classic;
+        private GameType _gameType;
         public GameType GameType
         {
             get => _gameType;
@@ -49,7 +49,7 @@ namespace SnakeGame.Logic
             }
         }
 
-        private MapSize _mapSize = MapSize.Medium;
+        private MapSize _mapSize;
         public MapSize MapSize
         {
             get => _mapSize;
@@ -60,7 +60,7 @@ namespace SnakeGame.Logic
             }
         }
 
-        private MapType _mapType = MapType.Classic;
+        private MapType _mapType;
         public MapType MapType
         {
             get => _mapType;
@@ -115,6 +115,16 @@ namespace SnakeGame.Logic
             }
 
             CurrentMap = newMap;
+        }
+
+        public void Reset()
+        {
+            ShowLoadCustomMapButton = Visibility.Hidden;
+            GameType = GameType.Classic;
+            MapSize = MapSize.Medium;
+            MapType = MapType.Classic;
+            Score = 0;
+            MapChanged();
         }
     }
 }
